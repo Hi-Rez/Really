@@ -16,15 +16,14 @@ extension RealityView: ARSessionDelegate {
         configuration.planeDetection.insert(.vertical)
         configuration.frameSemantics = [.sceneDepth, .smoothedSceneDepth]
         configuration.sceneReconstruction = .mesh
-        
-        
+
         arView.session.run(configuration)
         arView.renderOptions.insert(.disableMotionBlur)
         arView.renderOptions.insert(.disablePersonOcclusion)
         arView.renderOptions.insert(.disableGroundingShadows)
         arView.renderOptions.insert(.disableDepthOfField)
         arView.renderOptions.insert(.disableAREnvironmentLighting)
-        
+
         arView.environment.sceneUnderstanding.options.insert(.occlusion)
     }
 }

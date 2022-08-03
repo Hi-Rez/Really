@@ -8,13 +8,10 @@
 import ARKit
 import Combine
 import Foundation
-import RealityKit
-import SwiftUI
-import Satin
 import MetalPerformanceShaders
-
-
-
+import RealityKit
+import Satin
+import SwiftUI
 
 class RealityView: ARView {
     /// The main view for the app.
@@ -37,6 +34,7 @@ class RealityView: ARView {
     var modelAnchor: AnchorEntity?
     
     // MARK: - Satin
+
     var satinRenderer: Renderer!
     var postProcessor: PostProcessor!
     var postMaterial: BloomMaterial!
@@ -54,6 +52,7 @@ class RealityView: ARView {
     var scaleFilter: MPSImageBilinearScale!
     
     // MARK: - Occulsion / Depth
+
     var capturedDepthTexture: CVMetalTexture?
     var capturedDepthTextureCache: CVMetalTextureCache!
     
@@ -106,7 +105,7 @@ class RealityView: ARView {
     }
     
     @objc func rotated() {
-        self.orientation = getOrientation()
+        orientation = getOrientation()
     }
     
     deinit {

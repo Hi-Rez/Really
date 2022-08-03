@@ -15,13 +15,14 @@ extension RealityView {
         arView.cameraMode = .ar
         arView.environment.background = .cameraFeed()
     }
-    
-    // MARK: -
+
+    // MARK: - Post Processing
+
     func postProcess(context: ARView.PostProcessContext) {
         updateSatin(context: context)
 //        postEffectNone(context: context)
     }
-    
+
     /// This postprocess method is a simple pass-through that doesn't change what RealityKit renders.
     /// When an app has a postprocess render callback function registered, the callback must encode to
     /// `targetColorTexture` or nothing renders. This method uses a blit encoder to copy the

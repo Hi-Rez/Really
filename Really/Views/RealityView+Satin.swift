@@ -22,7 +22,6 @@ extension RealityView {
     
     func setupSatin(device: MTLDevice) {
         setupSatinMesh()
-//        setupDebugMesh()
         setupFilters(device: device)
         setupDepthTextureCache(device: device)
     }
@@ -80,42 +79,6 @@ extension RealityView {
                 fatalError("Failed to load mesh")
             }
         }
-    }
-    
-    func setupDebugMesh() {
-        let debugMaterial = DebugDepthMaterial(pipelinesURL: pipelinesURL)
-        
-        debugMaterial.onUpdate = { [weak self] in
-            guard let self = self, let frame = self.session.currentFrame, let orientation = self.orientation else { return }
-            let orientationTransform = frame.displayTransform(for: orientation, viewportSize: .init(width: self.renderTexture.width, height: self.renderTexture.height)).inverted()
-            debugMaterial.set("Orientation Transform", simd_float2x2(
-                .init(Float(orientationTransform.a), Float(orientationTransform.b)),
-                .init(Float(orientationTransform.c), Float(orientationTransform.d))
-            ))
-            debugMaterial.set("Orientation Offset", simd_make_float2(Float(orientationTransform.tx), Float(orientationTransform.ty)))
-            debugMaterial.updateUniforms()
-        }
-        
-        debugMaterial.onBind = { [weak self] (renderEncoder: MTLRenderCommandEncoder) in
-            guard let self = self, let cvDepthTexture = self.capturedDepthTexture else { return }
-            renderEncoder.setFragmentTexture(CVMetalTextureGetTexture(cvDepthTexture), index: FragmentTextureIndex.Custom0.rawValue)
-        }
-        
-        let debugMesh = Mesh(geometry: QuadGeometry(), material: debugMaterial)
-        
-        let dist: Float = -1.0
-        debugMesh.position = [0, 0, dist]
-        debugMesh.onUpdate = { [weak self] in
-            guard let self = self else { return }
-            let theta = degToRad(self.satinCamera.fov * 0.5)
-            let aspect = self.satinCamera.aspect // w / h
-            let halfHeight = dist * tan(theta)
-            let halfWidth = aspect * halfHeight
-            debugMesh.scale = [halfWidth, halfHeight, 1.0]
-        }
-        
-        satinScene.add(debugMesh, false)
-        satinCamera.add(debugMesh)
     }
     
     func setupRenderer(_ context: Context) {
@@ -239,7 +202,6 @@ extension RealityView {
         rpd.colorAttachments[0].texture = renderTexture
         rpd.depthAttachment.texture = context.sourceDepthTexture
 
-        satinRenderer.setClearColor([0.0, 0.0, 0.0, 0.0])
         satinRenderer.draw(
             renderPassDescriptor: rpd,
             commandBuffer: commandBuffer
