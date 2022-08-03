@@ -14,18 +14,7 @@ import Satin
 import MetalPerformanceShaders
 
 
-class BloomMaterial: LiveMaterial {
-    var sourceTexture: MTLTexture?
-    var sourceBlurTexture: MTLTexture?
-    var blurTexture: MTLTexture?
-    
-    override func bind(_ renderEncoder: MTLRenderCommandEncoder) {
-        super.bind(renderEncoder)
-        renderEncoder.setFragmentTexture(sourceTexture, index: FragmentTextureIndex.Custom0.rawValue)
-        renderEncoder.setFragmentTexture(sourceBlurTexture, index: FragmentTextureIndex.Custom1.rawValue)
-        renderEncoder.setFragmentTexture(blurTexture, index: FragmentTextureIndex.Custom2.rawValue)
-    }
-}
+
 
 class RealityView: ARView {
     /// The main view for the app.
@@ -52,6 +41,8 @@ class RealityView: ARView {
     var postProcessor: PostProcessor!
     var postMaterial: BloomMaterial!
     var satinScene = Object("Satin Scene")
+    var satinMesh: Mesh!
+    var satinMeshContainer = Object("Mesh Container")
     var satinCamera = PerspectiveCamera(position: [0, 0, 5], near: 0.01, far: 100.0)
     var orientation: UIInterfaceOrientation?
     var _updateContext: Bool = true
@@ -61,6 +52,10 @@ class RealityView: ARView {
     var renderScale: Float = 0.5
     var blurFilter: MPSImageGaussianBlur!
     var scaleFilter: MPSImageBilinearScale!
+    
+    // MARK: - Occulsion / Depth
+    var capturedDepthTexture: CVMetalTexture?
+    var capturedDepthTextureCache: CVMetalTextureCache!
     
     // MARK: - Initializers
     
@@ -81,7 +76,7 @@ class RealityView: ARView {
         setUpCoachingOverlay()
         setupOrientationAndObserver()
         setupScene()
-        setupSatin(device)
+        setupSatin(device: device)
         configureWorldTracking()
     }
     

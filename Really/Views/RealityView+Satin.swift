@@ -20,12 +20,14 @@ extension RealityView {
         return window?.windowScene?.interfaceOrientation
     }
     
-    func setupSatin(_ device: MTLDevice) {
+    func setupSatin(device: MTLDevice) {
         setupSatinMesh()
-        setupFilters(device)
+//        setupDebugMesh()
+        setupFilters(device: device)
+        setupDepthTextureCache(device: device)
     }
     
-    func setupFilters(_ device: MTLDevice) {
+    func setupFilters(device: MTLDevice) {
         blurFilter = MPSImageGaussianBlur(device: device, sigma: 48.0)
         blurFilter.edgeMode = .clamp
         scaleFilter = MPSImageBilinearScale(device: device)
@@ -34,8 +36,6 @@ extension RealityView {
     func setupSatinMesh() {
         DispatchQueue.global(qos: .userInitiated).async { [unowned self] in
             let asset = MDLAsset(url: self.modelURL, vertexDescriptor: SatinModelIOVertexDescriptor, bufferAllocator: nil)
-            
-            let container = Object("Model Container")
             
             // I manually pick out the screen
             let parent = asset.object(at: 0)
@@ -48,40 +48,96 @@ extension RealityView {
                 let indexDataPtr = sub.indexBuffer(asIndexType: .uInt32).map().bytes.bindMemory(to: UInt32.self, capacity: sub.indexCount)
                 geo.indexData = Array(UnsafeBufferPointer(start: indexDataPtr, count: sub.indexCount))
                 
-                let material = Satin.BasicColorMaterial(.one, .alpha)
-                let mesh = Mesh(geometry: geo, material: material)
+                let material = DepthPassThroughMaterial(pipelinesURL: pipelinesURL)
+                material.depthBias = DepthBias(bias: 1000, slope: 1000, clamp: 1000)
+                
+                material.onUpdate = { [weak self] in
+                    guard let self = self, let frame = self.session.currentFrame, let orientation = self.orientation else { return }
+                    let orientationTransform = frame.displayTransform(for: orientation, viewportSize: .init(width: self.renderTexture.width, height: self.renderTexture.height)).inverted()
+                    material.set("Orientation Transform", simd_float2x2(
+                        .init(Float(orientationTransform.a), Float(orientationTransform.b)),
+                        .init(Float(orientationTransform.c), Float(orientationTransform.d))
+                    ))
+                    material.set("Orientation Offset", simd_make_float2(Float(orientationTransform.tx), Float(orientationTransform.ty)))
+                    material.updateUniforms()
+                }
+                
+                material.onBind = { [weak self] (renderEncoder: MTLRenderCommandEncoder) in
+                    guard let self = self, let cvDepthTexture = self.capturedDepthTexture else { return }
+                    renderEncoder.setFragmentTexture(CVMetalTextureGetTexture(cvDepthTexture), index: FragmentTextureIndex.Custom0.rawValue)
+                }
+                
+                satinMesh = Mesh(geometry: geo, material: material)
                 
                 if let childTransform = child.transform {
-                    mesh.localMatrix = childTransform.matrix
-                    mesh.scale = simd_float3(repeating: 100.0)
-                }
-                            
-                container.onUpdate = { [weak container, weak self] in
-                    guard let self = self, let container = container, let model = self.modelEntity, let transform = model.transform else { return }
-                    let worldTransform = model.convert(transform: transform, to: nil)
-                    container.localMatrix = worldTransform.matrix
+                    satinMesh.localMatrix = childTransform.matrix
+                    satinMesh.scale = simd_float3(repeating: 100.0)
                 }
                 
-                container.add(mesh)
-            }
-            else {
+                satinMeshContainer.add(satinMesh)
+                satinScene.add(satinMeshContainer)
+            } else {
                 fatalError("Failed to load mesh")
             }
-            
-            DispatchQueue.main.async { [unowned self] in
-                self.satinScene.add(container)
-            }
         }
+    }
+    
+    func setupDebugMesh() {
+        let debugMaterial = DebugDepthMaterial(pipelinesURL: pipelinesURL)
+        
+        debugMaterial.onUpdate = { [weak self] in
+            guard let self = self, let frame = self.session.currentFrame, let orientation = self.orientation else { return }
+            let orientationTransform = frame.displayTransform(for: orientation, viewportSize: .init(width: self.renderTexture.width, height: self.renderTexture.height)).inverted()
+            debugMaterial.set("Orientation Transform", simd_float2x2(
+                .init(Float(orientationTransform.a), Float(orientationTransform.b)),
+                .init(Float(orientationTransform.c), Float(orientationTransform.d))
+            ))
+            debugMaterial.set("Orientation Offset", simd_make_float2(Float(orientationTransform.tx), Float(orientationTransform.ty)))
+            debugMaterial.updateUniforms()
+        }
+        
+        debugMaterial.onBind = { [weak self] (renderEncoder: MTLRenderCommandEncoder) in
+            guard let self = self, let cvDepthTexture = self.capturedDepthTexture else { return }
+            renderEncoder.setFragmentTexture(CVMetalTextureGetTexture(cvDepthTexture), index: FragmentTextureIndex.Custom0.rawValue)
+        }
+        
+        let debugMesh = Mesh(geometry: QuadGeometry(), material: debugMaterial)
+        
+        let dist: Float = -1.0
+        debugMesh.position = [0, 0, dist]
+        debugMesh.onUpdate = { [weak self] in
+            guard let self = self else { return }
+            let theta = degToRad(self.satinCamera.fov * 0.5)
+            let aspect = self.satinCamera.aspect // w / h
+            let halfHeight = dist * tan(theta)
+            let halfWidth = aspect * halfHeight
+            debugMesh.scale = [halfWidth, halfHeight, 1.0]
+        }
+        
+        satinScene.add(debugMesh, false)
+        satinCamera.add(debugMesh)
     }
     
     func setupRenderer(_ context: Context) {
         satinScene.visible = false
         satinRenderer = Renderer(context: context, scene: satinScene, camera: satinCamera)
+        satinRenderer.colorLoadAction = .clear
+        satinRenderer.depthLoadAction = .load
     }
     
     func setupPostProcessor(_ context: Context) {
         postMaterial = BloomMaterial(pipelinesURL: pipelinesURL)
         postProcessor = PostProcessor(context: context, material: postMaterial)
+    }
+    
+    func updateSatinContext(context: ARView.PostProcessContext) {
+        if _updateContext {
+            let satinRendererContext = Context(context.device, 1, context.compatibleTargetTexture!.pixelFormat, .depth32Float)
+            setupRenderer(satinRendererContext)
+            let postProcessingContext = Context(context.device, 1, context.compatibleTargetTexture!.pixelFormat)
+            setupPostProcessor(postProcessingContext)
+            _updateContext = false
+        }
     }
     
     func updateTextures(context: ARView.PostProcessContext) {
@@ -99,6 +155,48 @@ extension RealityView {
         }
     }
     
+    // MARK: - Depth
+        
+    func updateDepthTexture(context: ARView.PostProcessContext) {
+        guard let frame = session.currentFrame else { return }
+        if let depthMap = (frame.smoothedSceneDepth ?? frame.sceneDepth)?.depthMap {
+            if let depthTexturePixelFormat = setMTLPixelFormat(basedOn: depthMap) {
+                capturedDepthTexture = createDepthTexture(fromPixelBuffer: depthMap, pixelFormat: depthTexturePixelFormat, planeIndex: 0)
+            }
+        }
+    }
+    
+    func setupDepthTextureCache(device: MTLDevice) {
+        // Create captured image texture cache
+        var textureCache: CVMetalTextureCache?
+        CVMetalTextureCacheCreate(nil, nil, device, nil, &textureCache)
+        capturedDepthTextureCache = textureCache
+    }
+    
+    func createDepthTexture(fromPixelBuffer pixelBuffer: CVPixelBuffer, pixelFormat: MTLPixelFormat, planeIndex: Int) -> CVMetalTexture? {
+        let width = CVPixelBufferGetWidthOfPlane(pixelBuffer, planeIndex)
+        let height = CVPixelBufferGetHeightOfPlane(pixelBuffer, planeIndex)
+        
+        var texture: CVMetalTexture?
+        let status = CVMetalTextureCacheCreateTextureFromImage(nil, capturedDepthTextureCache, pixelBuffer, nil, pixelFormat, width, height, planeIndex, &texture)
+        
+        if status != kCVReturnSuccess {
+            texture = nil
+        }
+        
+        return texture
+    }
+    
+    func setMTLPixelFormat(basedOn pixelBuffer: CVPixelBuffer!) -> MTLPixelFormat? {
+        if CVPixelBufferGetPixelFormatType(pixelBuffer) == kCVPixelFormatType_DepthFloat32 {
+            return .r32Float
+        } else if CVPixelBufferGetPixelFormatType(pixelBuffer) == kCVPixelFormatType_OneComponent8 {
+            return .r8Uint
+        } else {
+            return nil
+        }
+    }
+    
     func updateSize(context: ARView.PostProcessContext) {
         let width = Float(context.sourceColorTexture.width)
         let height = Float(context.sourceColorTexture.height)
@@ -110,38 +208,41 @@ extension RealityView {
         
         // this will composite our textures with a bloom material / shader
         postProcessor.resize((width, height))
-        
-        // you may have to check for orientation changes to make sure the textures & orientation are the right size.
-        if let frame = session.currentFrame, let orientation = orientation {
-            let viewportSize = CGSizeMake(CGFloat(widthRender), CGFloat(heightRender))
-            satinCamera.viewMatrix = frame.camera.viewMatrix(for: orientation)
-            satinCamera.projectionMatrix = frame.camera.projectionMatrix(for: orientation, viewportSize: viewportSize, zNear: 0.01, zFar: 100.0)
-            satinScene.visible = true
-        }
     }
     
-    func updateSatinContext(context: ARView.PostProcessContext) {
-        if _updateContext {
-            let satinContext = Context(context.device, 1, context.compatibleTargetTexture!.pixelFormat)
-            setupRenderer(satinContext)
-            setupPostProcessor(satinContext)
-            _updateContext = false
+    func updateCamera(context: ARView.PostProcessContext) {
+        // you may have to check for orientation changes to make sure the textures & orientation are the right size.
+        if let _ = session.currentFrame {
+            satinCamera.viewMatrix = arView.cameraTransform.matrix.inverse
+            satinCamera.projectionMatrix = context.projection
+            satinScene.visible = true
         }
     }
     
     func updateSatin(context: ARView.PostProcessContext) {
         updateSatinContext(context: context)
         updateTextures(context: context)
+        updateDepthTexture(context: context)
         updateSize(context: context)
+        updateCamera(context: context)
         
+        if let model = modelEntity {
+            let worldTransform = model.convert(transform: model.transform, to: nil)
+            satinMeshContainer.localMatrix = worldTransform.matrix
+        }
+                    
         let commandBuffer = context.commandBuffer
         let targetColorTexture = context.compatibleTargetTexture!
         let sourceColorTexture = context.sourceColorTexture
         
+        let rpd = MTLRenderPassDescriptor()
+        rpd.colorAttachments[0].texture = renderTexture
+        rpd.depthAttachment.texture = context.sourceDepthTexture
+
+        satinRenderer.setClearColor([0.0, 0.0, 0.0, 0.0])
         satinRenderer.draw(
-            renderPassDescriptor: MTLRenderPassDescriptor(),
-            commandBuffer: commandBuffer,
-            renderTarget: renderTexture
+            renderPassDescriptor: rpd,
+            commandBuffer: commandBuffer
         )
         
         blurFilter.encode(
@@ -149,22 +250,22 @@ extension RealityView {
             sourceTexture: renderTexture,
             destinationTexture: blurTexture
         )
-        
+
         scaleFilter.encode(
             commandBuffer: commandBuffer,
             sourceTexture: sourceColorTexture,
             destinationTexture: renderTexture
         )
-        
+
         blurFilter.encode(
             commandBuffer: commandBuffer,
             inPlaceTexture: &renderTexture
         )
-        
+
         postMaterial.sourceTexture = sourceColorTexture
         postMaterial.sourceBlurTexture = renderTexture
         postMaterial.blurTexture = blurTexture
-        
+
         postProcessor.draw(
             renderPassDescriptor: MTLRenderPassDescriptor(),
             commandBuffer: commandBuffer,

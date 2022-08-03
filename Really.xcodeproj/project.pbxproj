@@ -12,10 +12,13 @@
 		E147FCEE287E835C00A08475 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E147FCED287E835C00A08475 /* Assets.xcassets */; };
 		E147FCF1287E835C00A08475 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E147FCF0287E835C00A08475 /* Preview Assets.xcassets */; };
 		E147FCF8287E848900A08475 /* Assets in Resources */ = {isa = PBXBuildFile; fileRef = E147FCF7287E848900A08475 /* Assets */; };
+		E1B007BC289B22C8008517ED /* BloomMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1B007BB289B22C8008517ED /* BloomMaterial.swift */; };
+		E1B007BE289B22E0008517ED /* DebugDepthMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1B007BD289B22E0008517ED /* DebugDepthMaterial.swift */; };
+		E1B007C4289B2475008517ED /* Satin in Frameworks */ = {isa = PBXBuildFile; productRef = E1B007C3289B2475008517ED /* Satin */; };
+		E1B007C6289B29D9008517ED /* DepthPassThroughMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1B007C5289B29D9008517ED /* DepthPassThroughMaterial.swift */; };
 		E1F264352887B65200510529 /* RealityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F264342887B65200510529 /* RealityView.swift */; };
 		E1F264372887B7BA00510529 /* ARView+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F264362887B7BA00510529 /* ARView+Utilities.swift */; };
 		E1F264392887B80100510529 /* RealityView+PostProcessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F264382887B80100510529 /* RealityView+PostProcessing.swift */; };
-		E1F2643F2887BBD300510529 /* Satin in Frameworks */ = {isa = PBXBuildFile; productRef = E1F2643E2887BBD300510529 /* Satin */; };
 		E1F264432887BC5900510529 /* RealityView+CoachingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F264422887BC5900510529 /* RealityView+CoachingView.swift */; };
 		E1F264452887BCBD00510529 /* RealityView+Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F264442887BCBD00510529 /* RealityView+Session.swift */; };
 		E1F264472887BCF100510529 /* RealityView+Satin.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F264462887BCF100510529 /* RealityView+Satin.swift */; };
@@ -28,6 +31,11 @@
 		E147FCED287E835C00A08475 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E147FCF0287E835C00A08475 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		E147FCF7287E848900A08475 /* Assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Assets; sourceTree = "<group>"; };
+		E1B007BB289B22C8008517ED /* BloomMaterial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BloomMaterial.swift; sourceTree = "<group>"; };
+		E1B007BD289B22E0008517ED /* DebugDepthMaterial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugDepthMaterial.swift; sourceTree = "<group>"; };
+		E1B007C0289B244E008517ED /* Satin */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Satin; path = ../Satin; sourceTree = "<group>"; };
+		E1B007C1289B2470008517ED /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		E1B007C5289B29D9008517ED /* DepthPassThroughMaterial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepthPassThroughMaterial.swift; sourceTree = "<group>"; };
 		E1F264342887B65200510529 /* RealityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityView.swift; sourceTree = "<group>"; };
 		E1F264362887B7BA00510529 /* ARView+Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ARView+Utilities.swift"; sourceTree = "<group>"; };
 		E1F264382887B80100510529 /* RealityView+PostProcessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RealityView+PostProcessing.swift"; sourceTree = "<group>"; };
@@ -41,7 +49,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E1F2643F2887BBD300510529 /* Satin in Frameworks */,
+				E1B007C4289B2475008517ED /* Satin in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -51,8 +59,10 @@
 		E147FCDB287E835C00A08475 = {
 			isa = PBXGroup;
 			children = (
+				E1B007BF289B244E008517ED /* Packages */,
 				E147FCE6287E835C00A08475 /* Really */,
 				E147FCE5287E835C00A08475 /* Products */,
+				E1B007C2289B2475008517ED /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -67,11 +77,12 @@
 		E147FCE6287E835C00A08475 /* Really */ = {
 			isa = PBXGroup;
 			children = (
-				E1F264412887BC3300510529 /* Utilities */,
-				E1F264402887BC1D00510529 /* iOS */,
-				E1F2643A2887B80B00510529 /* Views */,
-				E147FCF7287E848900A08475 /* Assets */,
 				E147FCED287E835C00A08475 /* Assets.xcassets */,
+				E147FCF7287E848900A08475 /* Assets */,
+				E1F2643A2887B80B00510529 /* Views */,
+				E1F264402887BC1D00510529 /* iOS */,
+				E1F264412887BC3300510529 /* Utilities */,
+				E1B007C1289B2470008517ED /* Info.plist */,
 				E147FCEF287E835C00A08475 /* Preview Content */,
 			);
 			path = Really;
@@ -85,9 +96,35 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		E1B007BA289B22BB008517ED /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				E1B007BB289B22C8008517ED /* BloomMaterial.swift */,
+				E1B007BD289B22E0008517ED /* DebugDepthMaterial.swift */,
+				E1B007C5289B29D9008517ED /* DepthPassThroughMaterial.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		E1B007BF289B244E008517ED /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				E1B007C0289B244E008517ED /* Satin */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		E1B007C2289B2475008517ED /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		E1F2643A2887B80B00510529 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				E1B007BA289B22BB008517ED /* Components */,
 				E147FCE9287E835C00A08475 /* ContentView.swift */,
 				E1F264342887B65200510529 /* RealityView.swift */,
 				E1F264382887B80100510529 /* RealityView+PostProcessing.swift */,
@@ -131,7 +168,7 @@
 			);
 			name = Really;
 			packageProductDependencies = (
-				E1F2643E2887BBD300510529 /* Satin */,
+				E1B007C3289B2475008517ED /* Satin */,
 			);
 			productName = Really;
 			productReference = E147FCE4287E835C00A08475 /* Really.app */;
@@ -162,7 +199,6 @@
 			);
 			mainGroup = E147FCDB287E835C00A08475;
 			packageReferences = (
-				E1F2643D2887BBD300510529 /* XCRemoteSwiftPackageReference "Satin" */,
 			);
 			productRefGroup = E147FCE5287E835C00A08475 /* Products */;
 			projectDirPath = "";
@@ -191,11 +227,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E1B007C6289B29D9008517ED /* DepthPassThroughMaterial.swift in Sources */,
 				E1F264372887B7BA00510529 /* ARView+Utilities.swift in Sources */,
 				E1F264472887BCF100510529 /* RealityView+Satin.swift in Sources */,
 				E147FCEA287E835C00A08475 /* ContentView.swift in Sources */,
 				E1F264452887BCBD00510529 /* RealityView+Session.swift in Sources */,
 				E1F264432887BC5900510529 /* RealityView+CoachingView.swift in Sources */,
+				E1B007BC289B22C8008517ED /* BloomMaterial.swift in Sources */,
+				E1B007BE289B22E0008517ED /* DebugDepthMaterial.swift in Sources */,
 				E1F264352887B65200510529 /* RealityView.swift in Sources */,
 				E147FCE8287E835C00A08475 /* AppDelegate.swift in Sources */,
 				E1F264392887B80100510529 /* RealityView+PostProcessing.swift in Sources */,
@@ -330,6 +369,7 @@
 				DEVELOPMENT_TEAM = H5N5GRKN9A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Really/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -362,6 +402,7 @@
 				DEVELOPMENT_TEAM = H5N5GRKN9A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Really/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -406,21 +447,9 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		E1F2643D2887BBD300510529 /* XCRemoteSwiftPackageReference "Satin" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Hi-Rez/Satin";
-			requirement = {
-				branch = master;
-				kind = branch;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
 /* Begin XCSwiftPackageProductDependency section */
-		E1F2643E2887BBD300510529 /* Satin */ = {
+		E1B007C3289B2475008517ED /* Satin */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = E1F2643D2887BBD300510529 /* XCRemoteSwiftPackageReference "Satin" */;
 			productName = Satin;
 		};
 /* End XCSwiftPackageProductDependency section */

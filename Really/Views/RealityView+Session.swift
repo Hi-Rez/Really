@@ -8,11 +8,15 @@
 import ARKit
 import Foundation
 
-extension RealityView {
+extension RealityView: ARSessionDelegate {
     func configureWorldTracking() {
         arView.automaticallyConfigureSession = false
         let configuration = ARWorldTrackingConfiguration()
         configuration.planeDetection.insert(.horizontal)
+        configuration.planeDetection.insert(.vertical)
+        configuration.frameSemantics = [.sceneDepth, .smoothedSceneDepth]
+        configuration.sceneReconstruction = .mesh
+        
         
         arView.session.run(configuration)
         arView.renderOptions.insert(.disableMotionBlur)
@@ -20,5 +24,7 @@ extension RealityView {
         arView.renderOptions.insert(.disableGroundingShadows)
         arView.renderOptions.insert(.disableDepthOfField)
         arView.renderOptions.insert(.disableAREnvironmentLighting)
+        
+        arView.environment.sceneUnderstanding.options.insert(.occlusion)
     }
 }
