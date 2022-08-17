@@ -27,7 +27,7 @@ extension RealityView {
     }
     
     func setupFilters(device: MTLDevice) {
-        blurFilter = MPSImageGaussianBlur(device: device, sigma: 48.0)
+        blurFilter = MPSImageGaussianBlur(device: device, sigma: 24.0)
         blurFilter.edgeMode = .clamp
         scaleFilter = MPSImageBilinearScale(device: device)
     }
@@ -48,7 +48,8 @@ extension RealityView {
                 geo.indexData = Array(UnsafeBufferPointer(start: indexDataPtr, count: sub.indexCount))
                 
                 let material = DepthPassThroughMaterial(pipelinesURL: pipelinesURL)
-                material.depthBias = DepthBias(bias: 1000, slope: 1000, clamp: 1000)
+                material.depthBias = DepthBias(bias: -100, slope: -100, clamp: -100)
+                material.depthCompareFunction = .lessEqual
                 
                 material.onUpdate = { [weak self] in
                     guard let self = self, let frame = self.session.currentFrame, let orientation = self.orientation else { return }
@@ -84,6 +85,7 @@ extension RealityView {
     func setupRenderer(_ context: Context) {
         satinScene.visible = false
         satinRenderer = Renderer(context: context, scene: satinScene, camera: satinCamera)
+        satinRenderer.invertViewportNearFar = true
         satinRenderer.colorLoadAction = .clear
         satinRenderer.depthLoadAction = .load
     }
@@ -171,6 +173,7 @@ extension RealityView {
         
         // this will composite our textures with a bloom material / shader
         postProcessor.resize((width, height))
+        
     }
     
     func updateCamera(context: ARView.PostProcessContext) {

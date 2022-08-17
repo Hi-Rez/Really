@@ -1,3 +1,5 @@
+#include "Library/Blend.metal"
+
 typedef struct {
     float4 color; // color
     float bloom; // slider,0,5,3.0
@@ -20,6 +22,7 @@ fragment float4 bloomFragment(VertexData in [[stage_in]],
     const float4 blurMaskSample = blurMaskTex.sample(s, uv);
   
     float4 color = uniforms.color * renderSample;
-    color += uniforms.bloom * blurMaskSample * renderBlurSample;
+    color.rgb = blendAdd(color.rgb, renderBlurSample.rgb, uniforms.bloom * blurMaskSample.r);
+//    color += uniforms.bloom * blurMaskSample * renderBlurSample;
     return color;
 }
