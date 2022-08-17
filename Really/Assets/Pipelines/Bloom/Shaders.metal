@@ -22,7 +22,6 @@ fragment float4 bloomFragment(VertexData in [[stage_in]],
     const float4 blurMaskSample = blurMaskTex.sample(s, uv);
   
     float4 color = uniforms.color * renderSample;
-    color.rgb = blendAdd(color.rgb, renderBlurSample.rgb, uniforms.bloom * blurMaskSample.r);
-//    color += uniforms.bloom * blurMaskSample * renderBlurSample;
+    color.rgb += blendAdd(color.rgb, renderBlurSample.rgb, uniforms.bloom * blurMaskSample.r);
     return color;
 }

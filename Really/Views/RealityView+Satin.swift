@@ -27,7 +27,7 @@ extension RealityView {
     }
     
     func setupFilters(device: MTLDevice) {
-        blurFilter = MPSImageGaussianBlur(device: device, sigma: 24.0)
+        blurFilter = MPSImageGaussianBlur(device: device, sigma: 32.0)
         blurFilter.edgeMode = .clamp
         scaleFilter = MPSImageBilinearScale(device: device)
     }
@@ -191,6 +191,12 @@ extension RealityView {
         updateDepthTexture(context: context)
         updateSize(context: context)
         updateCamera(context: context)
+        
+        // When you set a material parameter (a shader uniform) make sure to use Capital Case
+        // So that means the variable bloom becomes Bloom when setting the parameter value from the CPU side (here)
+        // Or bloomColor become "Bloom Color"
+        // Or fallbackTintColor become "Fallback Tint Color"
+        postMaterial.set("Bloom", Float(5.0 * abs(sin(context.time))))
         
         if let model = modelEntity {
             let worldTransform = model.convert(transform: model.transform, to: nil)
