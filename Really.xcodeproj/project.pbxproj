@@ -12,11 +12,11 @@
 		E147FCEE287E835C00A08475 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E147FCED287E835C00A08475 /* Assets.xcassets */; };
 		E147FCF1287E835C00A08475 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E147FCF0287E835C00A08475 /* Preview Assets.xcassets */; };
 		E147FCF8287E848900A08475 /* Assets in Resources */ = {isa = PBXBuildFile; fileRef = E147FCF7287E848900A08475 /* Assets */; };
+		E185907C28E8D7250014AC15 /* Satin in Frameworks */ = {isa = PBXBuildFile; productRef = E185907B28E8D7250014AC15 /* Satin */; };
 		E1B007BC289B22C8008517ED /* BloomMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1B007BB289B22C8008517ED /* BloomMaterial.swift */; };
 		E1B007BE289B22E0008517ED /* DebugDepthMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1B007BD289B22E0008517ED /* DebugDepthMaterial.swift */; };
 		E1B007C4289B2475008517ED /* Satin in Frameworks */ = {isa = PBXBuildFile; productRef = E1B007C3289B2475008517ED /* Satin */; };
 		E1B007C6289B29D9008517ED /* DepthPassThroughMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1B007C5289B29D9008517ED /* DepthPassThroughMaterial.swift */; };
-		E1B007C9289B2FD6008517ED /* Satin in Frameworks */ = {isa = PBXBuildFile; productRef = E1B007C8289B2FD6008517ED /* Satin */; };
 		E1F264352887B65200510529 /* RealityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F264342887B65200510529 /* RealityView.swift */; };
 		E1F264372887B7BA00510529 /* ARView+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F264362887B7BA00510529 /* ARView+Utilities.swift */; };
 		E1F264392887B80100510529 /* RealityView+PostProcessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F264382887B80100510529 /* RealityView+PostProcessing.swift */; };
@@ -49,7 +49,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E1B007C9289B2FD6008517ED /* Satin in Frameworks */,
+				E185907C28E8D7250014AC15 /* Satin in Frameworks */,
 				E1B007C4289B2475008517ED /* Satin in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -161,7 +161,7 @@
 			name = Really;
 			packageProductDependencies = (
 				E1B007C3289B2475008517ED /* Satin */,
-				E1B007C8289B2FD6008517ED /* Satin */,
+				E185907B28E8D7250014AC15 /* Satin */,
 			);
 			productName = Really;
 			productReference = E147FCE4287E835C00A08475 /* Really.app */;
@@ -192,7 +192,7 @@
 			);
 			mainGroup = E147FCDB287E835C00A08475;
 			packageReferences = (
-				E1B007C7289B2FD6008517ED /* XCRemoteSwiftPackageReference "Satin" */,
+				E185907A28E8D7250014AC15 /* XCRemoteSwiftPackageReference "Satin" */,
 			);
 			productRefGroup = E147FCE5287E835C00A08475 /* Products */;
 			projectDirPath = "";
@@ -442,7 +442,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		E1B007C7289B2FD6008517ED /* XCRemoteSwiftPackageReference "Satin" */ = {
+		E185907A28E8D7250014AC15 /* XCRemoteSwiftPackageReference "Satin" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Hi-Rez/Satin";
 			requirement = {
@@ -453,13 +453,13 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		E1B007C3289B2475008517ED /* Satin */ = {
+		E185907B28E8D7250014AC15 /* Satin */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = E185907A28E8D7250014AC15 /* XCRemoteSwiftPackageReference "Satin" */;
 			productName = Satin;
 		};
-		E1B007C8289B2FD6008517ED /* Satin */ = {
+		E1B007C3289B2475008517ED /* Satin */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = E1B007C7289B2FD6008517ED /* XCRemoteSwiftPackageReference "Satin" */;
 			productName = Satin;
 		};
 /* End XCSwiftPackageProductDependency section */

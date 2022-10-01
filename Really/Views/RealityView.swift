@@ -47,9 +47,7 @@ class RealityView: ARView {
     var _updateTextures: Bool = true
     var blurTexture: MTLTexture!
     var renderTexture: MTLTexture!
-    var renderScale: Float = 1.0
     var blurFilter: MPSImageGaussianBlur!
-    var scaleFilter: MPSImageBilinearScale!
     
     // MARK: - Occulsion / Depth
 

@@ -8,20 +8,20 @@ typedef struct {
 fragment float4 bloomFragment(VertexData in [[stage_in]],
                               constant BloomUniforms &uniforms
                               [[buffer(FragmentBufferMaterialUniforms)]],
-                              texture2d<float, access::sample> renderTex
+                              texture2d<float, access::sample> sourceTex
                               [[texture(FragmentTextureCustom0)]],
-                              texture2d<float, access::sample> renderBlurTex
+                              texture2d<float, access::sample> renderTex
                               [[texture(FragmentTextureCustom1)]],
-                              texture2d<float, access::sample> blurMaskTex
+                              texture2d<float, access::sample> blurTex
                               [[texture(FragmentTextureCustom2)]]) {
     const float2 uv = in.uv;
     constexpr sampler s = sampler(min_filter::linear, mag_filter::linear);
 
+    const float4 sourceSample = sourceTex.sample(s, uv);
     const float4 renderSample = renderTex.sample(s, uv);
-    const float4 renderBlurSample = renderBlurTex.sample(s, uv);
-    const float4 blurMaskSample = blurMaskTex.sample(s, uv);
+    const float4 blurSample = blurTex.sample(s, uv);
   
-    float4 color = uniforms.color * renderSample;
-    color.rgb += blendAdd(color.rgb, renderBlurSample.rgb, uniforms.bloom * blurMaskSample.r);
+    float4 color = uniforms.color * sourceSample;
+    color.rgb += blendAdd(color.rgb, renderSample.rgb, uniforms.bloom * blurSample.a);
     return color;
 }

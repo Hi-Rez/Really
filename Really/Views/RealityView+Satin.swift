@@ -29,7 +29,6 @@ extension RealityView {
     func setupFilters(device: MTLDevice) {
         blurFilter = MPSImageGaussianBlur(device: device, sigma: 32.0)
         blurFilter.edgeMode = .clamp
-        scaleFilter = MPSImageBilinearScale(device: device)
     }
 
     func setupSatinMesh() {
@@ -48,8 +47,8 @@ extension RealityView {
                 geo.indexData = Array(UnsafeBufferPointer(start: indexDataPtr, count: sub.indexCount))
                 
                 let material = DepthPassThroughMaterial(pipelinesURL: pipelinesURL)
-                material.depthBias = DepthBias(bias: -100, slope: -100, clamp: -100)
-                material.depthCompareFunction = .lessEqual
+                material.depthBias = DepthBias(bias: 10.0, slope: 10.0, clamp: 10.0)
+                material.depthCompareFunction = .greaterEqual
                 
                 material.onUpdate = { [weak self] in
                     guard let self = self, let frame = self.session.currentFrame, let orientation = self.orientation else { return }
@@ -72,6 +71,7 @@ extension RealityView {
                 if let childTransform = child.transform {
                     satinMesh.localMatrix = childTransform.matrix
                     satinMesh.scale = simd_float3(repeating: 100.0)
+                    satinMesh.cullMode = .none
                 }
                 
                 satinMeshContainer.add(satinMesh)
@@ -85,7 +85,7 @@ extension RealityView {
     func setupRenderer(_ context: Context) {
         satinScene.visible = false
         satinRenderer = Renderer(context: context, scene: satinScene, camera: satinCamera)
-        satinRenderer.invertViewportNearFar = true
+        satinRenderer.setClearColor(.zero)
         satinRenderer.colorLoadAction = .clear
         satinRenderer.depthLoadAction = .load
     }
@@ -106,8 +106,8 @@ extension RealityView {
     }
     
     func updateTextures(context: ARView.PostProcessContext) {
-        let width = Int(Float(context.targetColorTexture.width) * renderScale)
-        let height = Int(Float(context.targetColorTexture.height) * renderScale)
+        let width = context.targetColorTexture.width
+        let height = context.targetColorTexture.height
         
         if let blurTexture = blurTexture, blurTexture.width != width || blurTexture.height != height {
             _updateTextures = true
@@ -163,17 +163,15 @@ extension RealityView {
     }
     
     func updateSize(context: ARView.PostProcessContext) {
-        let width = Float(context.sourceColorTexture.width)
-        let height = Float(context.sourceColorTexture.height)
-        let widthRender = width * renderScale
-        let heightRender = height * renderScale
+        let width = context.sourceColorTexture.width
+        let height = context.sourceColorTexture.height
+        let size = (Float(width), Float(height))
         
         // because we don't need a full size render because we are going to blur it
-        satinRenderer.resize((widthRender, heightRender))
+        satinRenderer.resize(size)
         
         // this will composite our textures with a bloom material / shader
-        postProcessor.resize((width, height))
-        
+        postProcessor.resize(size)
     }
     
     func updateCamera(context: ARView.PostProcessContext) {
@@ -181,6 +179,7 @@ extension RealityView {
         if let _ = session.currentFrame {
             satinCamera.viewMatrix = arView.cameraTransform.matrix.inverse
             satinCamera.projectionMatrix = context.projection
+            satinCamera.updateProjectionMatrix = false
             satinScene.visible = true
         }
     }
@@ -196,7 +195,7 @@ extension RealityView {
         // So that means the variable bloom becomes Bloom when setting the parameter value from the CPU side (here)
         // Or bloomColor become "Bloom Color"
         // Or fallbackTintColor become "Fallback Tint Color"
-        postMaterial.set("Bloom", Float(5.0 * abs(sin(context.time))))
+        postMaterial.set("Bloom", 5.0)
         
         if let model = modelEntity {
             let worldTransform = model.convert(transform: model.transform, to: nil)
@@ -216,25 +215,11 @@ extension RealityView {
             commandBuffer: commandBuffer
         )
         
-        blurFilter.encode(
-            commandBuffer: commandBuffer,
-            sourceTexture: renderTexture,
-            destinationTexture: blurTexture
-        )
-
-        scaleFilter.encode(
-            commandBuffer: commandBuffer,
-            sourceTexture: sourceColorTexture,
-            destinationTexture: renderTexture
-        )
-
-        blurFilter.encode(
-            commandBuffer: commandBuffer,
-            inPlaceTexture: &renderTexture
-        )
+        blurFilter.encode(commandBuffer: commandBuffer, sourceTexture: renderTexture, destinationTexture: blurTexture)
+        blurFilter.encode(commandBuffer: commandBuffer, sourceTexture: sourceColorTexture, destinationTexture: renderTexture)
 
         postMaterial.sourceTexture = sourceColorTexture
-        postMaterial.sourceBlurTexture = renderTexture
+        postMaterial.renderTexture = renderTexture
         postMaterial.blurTexture = blurTexture
 
         postProcessor.draw(
